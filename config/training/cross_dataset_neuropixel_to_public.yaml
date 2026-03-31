@@ -1,0 +1,154 @@
+# Cross-Dataset Configuration: Neuropixel Pretrained → Public Per-Session Evaluation
+# ====================================================================================
+# Configuration for testing neuropixel pretrained encoder on public dataset sessions
+
+# Dataset configuration (Public dataset)
+dataset:
+  data_root: "/data/Fang-analysis/causal-nfm/Data/processed_normalize_session"
+  subjects: ['c', 'j', 'm', 't']               # Monkey subjects to include
+  target_neurons: 50                       # Target number of neurons per session
+  sequence_length: 50                      # Sequence length (T dimension)
+  neuron_selection_strategy: 'first_n'    # Neuron selection strategy
+  random_seed: 3407                          # Random seed
+
+# Model configuration
+model:
+  # Model initialization mode
+  initialization_mode: 'neuropixel_pretrained'  # Cross-dataset initialization
+  
+  # Positional encoding adaptation
+  use_standard_rope: true                 # Replace RoPE3D with standard 1D RoPE
+  rope_base: 10000.0                      # RoPE base frequency
+  
+  # Downstream head configuration
+  dropout: 0.1                            # Dropout rate
+  prediction_layers: 2                    # Number of layers in prediction head
+
+# Training/Fine-tuning configuration
+training:
+  # Task-specific settings
+  task_type: 'regression'                 # Task type identifier
+  target_type: 'velocity'                 # 'velocity' or 'position' prediction
+  training_mode: 'finetune_encoder'       # Hardcoded in code
+  
+  # Optimization settings
+  learning_rate: 0.001                    # Learning rate for per-session training
+  weight_decay: 0.01                      # AdamW weight decay
+  batch_size: 32                          # Batch size
+  num_epochs: 50                          # Number of training epochs per session
+  
+  # Learning rate scheduling
+  decay_epochs: 1000                      # LR decay every N epochs (effectively no decay)
+  decay_rate: 0.9                         # LR decay factor
+  
+  # Regularization
+  max_grad_norm: 1.0                      # Gradient clipping norm
+  
+  # Early stopping (per session)
+  early_stopping_patience: 20             # Stop if no improvement for N epochs
+  
+  # Reproducibility
+  random_seed: 3407
+
+# Paths configuration
+paths:
+  base_dir: "./logs_cross_dataset/"  # Base directory for outputs
+  experiment_name: neuropixel_to_public                   # Auto-generated based on config and scenario
+  
+  # NEUROPIXEL pretrained model path
+  pretrained_path: './logs_neuropixel/RoPE3D_UniformMasking_Kernel_9_9_d_model_384_TLL_4_SL_2_HL_4_h12/checkpoints/best.pth'
+
+# Evaluation configuration
+evaluation:
+  # Default scenario (can be overridden via command line)
+  scenario: 'cross_session'               # Options: cross_session, cross_subject_center, cross_subject_random
+  
+  # All scenarios to evaluate (for batch processing)
+  scenarios:
+    - 'cross_session'
+    - 'cross_subject_center'
+    - 'cross_subject_random'
+  
+  # Evaluation settings
+  save_session_checkpoints: true          # Save checkpoints for each session
+  aggregate_statistics: true              # Compute aggregated statistics
+  
+  # Results reporting
+  report_per_session: true                # Report individual session results
+  report_aggregated: true                 # Report aggregated results
+  save_detailed_metrics: true             # Save detailed per-session metrics
+
+# Hardware configuration
+hardware:
+  device: 'auto'                          # 'auto', 'cuda', or 'cpu'
+  num_workers: 2                          # DataLoader workers (lower for per-session)
+  pin_memory: true                        # Pin memory for faster GPU transfer
+
+# Experiment metadata
+experiment:
+  description: "Cross-dataset generalization: Neuropixel pretrained → Public per-session evaluation"
+  tags: ["cross_dataset", "neuropixel_to_public", "per_session", "generalization", "transfer_learning"]
+  notes: |
+    Testing cross-dataset transfer learning by:
+    1. Loading neuropixel pretrained encoder (RoPE3D)
+    2. Replacing with standard 1D RoPE (temporal-only)
+    3. Training and evaluating on individual public dataset sessions
+    4. Aggregating results across sessions for statistical analysis
+    
+    Key hypothesis: Pretrained representations from multi-site neuropixel 
+    data should transfer to single-site public dataset despite architectural 
+    differences (multi-site vs single-site, different positional encodings).
+  
+  # Dataset and model info
+  dataset_info:
+    source: "Cross-dataset per-session transfer learning evaluation"
+    pretrained_on: "Neuropixel dataset (multi-site, RoPE3D)"
+    evaluated_on: "Public dataset (Perich-Miller 2018, single-site sessions)"
+    task: "Velocity prediction from single-site neural activity"
+    input_format: "[B, 1, T, N] neural data (no coordinates needed)"
+    output_format: "[B, T, 2] velocity vectors"
+    evaluation_protocol: "Per-session training and evaluation with aggregation"
+  
+  # Research questions
+  research_questions:
+    - "Can neuropixel multi-site representations transfer to public single-site data?"
+    - "How does performance compare across different evaluation scenarios?"
+    - "What is the variance in performance across individual sessions?"
+    - "Does per-session fine-tuning improve over frozen encoder?"
+    - "How does cross-dataset transfer compare to in-dataset pretraining?"
+  
+  # Evaluation scenarios explained
+  scenario_descriptions:
+    cross_session: |
+      Within-subject cross-session generalization.
+      Train/evaluate on different sessions from the same subject.
+      Tests temporal generalization within same recording setup.
+    
+    cross_subject_center: |
+      Cross-subject generalization with center-out task.
+      Train on one subject, evaluate on another (same task).
+      Tests subject-level generalization with consistent task structure.
+    
+    cross_subject_random: |
+      Cross-subject generalization with random-target task.
+      Train on one subject, evaluate on another (different task).
+      Tests both subject and task generalization simultaneously.
+
+# Advanced options
+advanced:
+  # Analysis options
+  save_predictions: true                  # Save predictions for analysis
+  compute_attention_maps: false           # Extract attention patterns (expensive)
+  
+  # Debugging
+  debug_mode: false                       # Enable debug logging
+  profile_training: false                 # Profile training loop
+  
+  # Visualization
+  plot_training_curves: true              # Plot training curves per session
+  save_sample_predictions: true           # Save sample predictions
+  
+  # Statistical analysis
+  compute_confidence_intervals: true      # Compute confidence intervals for aggregated metrics
+  significance_testing: true              # Perform significance testing across scenarios
+

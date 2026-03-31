@@ -1,0 +1,170 @@
+# Professional Neural Foundation Model Pretraining Configuration
+# ============================================================
+# Comprehensive configuration for CrossSiteFoundationMAE pretraining
+# with support for DDP, advanced masking, and professional training features
+
+# Model size configurations (factory patterns)
+model_sizes:
+  small:
+    d_model: 384
+    temporal_layers: 4
+    spatial_layers: 2
+    heads: 12
+    
+  medium:
+    d_model: 768
+    temporal_layers: 6
+    spatial_layers: 4
+    heads: 24
+    
+  large:
+    d_model: 1024
+    temporal_layers: 8
+    spatial_layers: 6
+    heads: 32
+
+# Base model configuration
+model:
+  neural_dim: 50                    # N: neural channels per site
+  n_sites: null                     # S: automatically determined from dataset
+  dropout: 0.1
+  
+  # Individual model parameters (can override model_sizes)
+  # Leave null to use model_sizes, set values to override
+  d_model: null                     # Model hidden dimension (overrides model_sizes if set)
+  temporal_layers: null             # Number of temporal encoder layers (overrides if set)
+  spatial_layers: null              # Number of spatial encoder layers (overrides if set)  
+  heads: null                       # Number of attention heads (overrides if set)
+  
+  # Architectural parameters (CRITICAL for research comparisons)
+  max_seq_length: 50             # T: maximum sequence length for positional encoding
+  pos_encoding_type: 'rope_3d'      # 'rope_3d', 'standard_rope', 'learnable', 'sinusoidal' - MAJOR architectural choice
+  spatial_scale: 0.1                # Spatial encoding scale factor
+  use_temporal_kernels: true        # Enable adaptive causal kernel attention
+  kernel_size: [3, 3]               # Kernel size for adaptive attention (varies by model size)
+  
+  # MAE decoder configuration
+  use_mae_decoder: true             # Enable MAE decoder for pretraining
+  use_site_specific_heads: False     # Site-specific vs shared decoder heads
+
+# Dataset configuration
+dataset:
+  exclude_ids: ['14116.0']  # Sites to exclude from training
+  split_ratios: [0.8, 0.1, 0.1]        # [train, val, test] ratios
+  target_neurons: 50                    # Target neurons per site (N dimension)
+  sample_times: 5                       # Neuron sampling repetitions
+  target_trials_per_site: 5000          # Target trials for training split
+  min_val_test_trials: 200              # Minimum trials for val/test (prevents oversampling)
+  width: 0.02                           # Time bin width (20ms)
+  sequence_length: 50                   # T: timesteps per sequence
+  
+  # Advanced dataset options
+  data_root: "/data/Fang-analysis/causal-nfm/Data/Monkey_data_meta"
+
+# Training configuration
+training:
+  # Model and optimization
+  model_size: "medium"              # small, medium, or large
+  seed: 3407
+  learning_rate: 0.00005
+  weight_decay: 0.01                # AdamW weight decay
+  batch_size: 32                    # Batch size per GPU
+  num_epochs: 1000
+  
+  # Learning rate scheduling
+  warmup_epochs: 10                 # Linear warmup epochs
+  min_lr_ratio: 0.0                 # Final LR = min_lr_ratio * initial_lr
+  
+  # Gradient management
+  max_grad_norm: 1.0                # Gradient clipping norm
+  
+  # Loss configuration
+  contrastive_weight: 0.1           # Weight for site-level contrastive loss
+  reconstruction_weight: 1.0        # Weight for Poisson reconstruction loss
+  
+  # Masking configuration (Enhanced CausalMaskingEngine)
+  masking:
+    temporal_mask_ratio: [0.01, 0.99]    # Uniform masking, Dynamic range: 
+    neuron_mask_ratio: [0.01, 0.99]    # Uniform masking, Dynamic range: 
+    min_unmasked_timesteps: 5           # Safety constraint
+    min_unmasked_neurons: 10            # Safety constraint per site
+  
+  # Checkpointing and monitoring (simplified)
+  early_stopping_patience: 400      # Stop if no improvement for N epochs
+  
+  # Simple checkpoint strategy:
+  # - Automatically saves best model as 'best.pth' (based on validation loss)
+  # - Automatically saves latest model as 'last.pth' (every epoch)
+  # - Only 2 checkpoint files total - clean and simple
+  
+  # Validation and testing
+  val_freq: 1                     # Validate every N epochs
+  test_freq: 1                     # Test every N epochs
+
+# Distributed training configuration
+distributed:
+  backend: 'nccl'                   # PyTorch DDP backend
+  find_unused_parameters: false     # DDP optimization
+  gradient_as_bucket_view: true     # DDP memory optimization
+
+# Enhanced logging system configuration (handled automatically by EnhancedLogger)
+# Note: The EnhancedLogger automatically provides:
+# - Structured Python logging with proper formatting
+# - TensorBoard logging with individual loss curves
+# - Simple checkpoint management (best.pth + last.pth)
+# - Configuration and model summary saving
+# - Professional folder organization: logs/experiment_name/{training_logs, runs, checkpoints, config, model_summary}
+# All logging settings are optimized for research use and require no manual configuration
+
+# Paths (managed automatically by enhanced logging system)
+paths:
+  base_dir: "./logs/neuropixel"                # Base directory for all experiment outputs
+  experiment_name: null             # Will be auto-generated based on model configuration
+  # Note: EnhancedLogger automatically creates the following structure:
+  # ./logs/experiment_name/
+  # ├── training_logs/    (training.log, training_statistics.json)
+  # ├── runs/            (TensorBoard logs)
+  # ├── checkpoints/     (best.pth + last.pth)
+  # ├── config/          (YAML + JSON configuration files)
+  # └── model_summary/   (architecture details, parameter breakdown)
+
+# Hardware configuration
+hardware:
+  # GPU settings
+  cuda_deterministic: true          # For reproducibility (slower)
+  cuda_benchmark: false             # For reproducibility (slower)
+  mixed_precision: false            # Automatic Mixed Precision (AMP)
+  
+  # Data loading
+  num_workers: 4                    # DataLoader workers per GPU
+  pin_memory: true                  # Pin memory for faster GPU transfer
+  persistent_workers: true          # Keep workers alive between epochs
+  prefetch_factor: 2                # Batches to prefetch per worker
+
+# Experiment tracking and metadata
+experiment:
+  description: "Professional neural foundation model pretraining with CrossSiteFoundationMAE"
+  tags: ["foundation_model", "mae", "cross_site", "neural", "pretraining"]
+  notes: "Enhanced trainer with DDP support, professional logging, and dynamic masking"
+  
+  # Reproducibility
+  deterministic: true
+  benchmark: false
+  
+  # Resource monitoring
+  monitor_gpu_memory: true
+  monitor_system_metrics: true
+
+# Advanced features
+advanced:
+  # Model analysis
+  analyze_attention: false          # Extract attention patterns (expensive)
+  analyze_connectivity: false       # Extract functional connectivity (expensive)
+  
+  # Debugging
+  debug_mode: false                 # Enable debug logging and checks
+  profile_training: false           # Profile training loop (expensive)
+  
+  # Experimental features
+  use_apex: false                   # NVIDIA Apex optimizations (if available)
+  use_deepspeed: false              # Microsoft DeepSpeed optimizations (if available) 

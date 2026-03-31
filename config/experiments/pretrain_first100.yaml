@@ -1,0 +1,58 @@
+# Model size configurations
+model_sizes:
+  small:
+    d_model: 256
+    heads: 4
+    encoder_layers: 3
+    decoder_layers: 3
+    
+  medium:
+    d_model: 512
+    heads: 8
+    encoder_layers: 6
+    decoder_layers: 6
+    
+  large:
+    d_model: 1024
+    heads: 16
+    encoder_layers: 12
+    decoder_layers: 12
+
+# Base model configuration
+model:
+  neural_dim: 100
+  kernel_size: [3, 3]
+  dropout: 0.15
+  threshold_log_rates: 20.0
+  activity_threshold: 0.01
+
+# Dataset configuration - NO CHUNKING, FIRST 100 NEURONS ONLY
+dataset:
+  exclude_ids: ['13122.0', '14116.0']  # Default exclusions
+  width: 0.02
+  target_neuron_dim: 100  # Not used when no_chunking_first_n is set
+  neuron_selection_strategy: 'all'  # Not used when no_chunking_first_n is set
+  selected_neurons: 100  # Not used when no_chunking_first_n is set
+  split_ratios: [0.7, 0.15, 0.15]  # [train, valid, test] ratios
+  no_chunking_first_n: 100  # Use only first 100 neurons, no chunking/padding
+
+# Training configuration
+training:
+  model_size: "medium"  # small, medium, or large
+  seed: 3407
+  learning_rate: 5e-5
+  batch_size: 64
+  mask_ratio_neurons: 0.25
+  mask_ratio_time: 0.25
+  temperature: 0.1
+  lambda_rec: 1.0
+  lambda_con: 0.5
+  lambda_reg: 0.0001
+  warmup_steps: 100
+  num_epochs: 1000
+  save_freq: 1000
+
+# Paths (auto-generated based on config)
+paths:
+  base_dir: "./logs"
+  experiment_name: null  # Will be auto-generated as mae_medium_first100_... 

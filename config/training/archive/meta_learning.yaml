@@ -1,0 +1,41 @@
+model:
+  neural_dim: 105
+  d_model: 512
+  heads: 8
+  encoder_layers: 6
+  decoder_layers: 6
+  kernel_size: [3, 3]
+  dropout: 0.15 
+
+anil_fomaml:
+  # we by exclude_ids, we actually pick te14116
+  #exclude_ids: ['13122.0', '14878.0', '12269.0', '13256.0', '10802.0', '14139.0', '12269.0', '14824.0', '12290.0', '9940.0', '13272.0', '10812.0', '10820.0', '14891.0', '13153.0', '13239.0', '10828.0']
+  exclude_ids: ['13122.0','10820.0', '13272.0', '10812.0', '9940.0', '12290.0']
+  valid_id: '14139'
+  test_id: '14116'
+
+  seed: 3407
+  output_dim: 2  # x,y coordinates/velocity
+  target_type: 'velocity'  # 'position' or 'velocity'
+
+  # Meta-learning specific parameters
+  k_shot: 30  # number of support samples per task
+  k_query: 100  # number of query samples per task
+  batch_size: 9  # number of tasks per batch   Be sure to match the number of training sessions (very important for consistency)
+ 
+  num_batches: 50  # number of batches per epoch
+  num_epochs: 1000
+  num_inner_steps: 10 # number of adaptation steps
+  outer_lr: 0.0005 # outer loop learning rate
+  inner_lr: 0.001   # inner loop learning rate
+
+  warmup_steps: 10
+  decay_epochs: 10
+  decay_rate: 0.9
+  freeze_encoder: True  # freeze encoder during meta-training
+  save_freq: 50
+
+paths:
+  pretrained_path: './checkpoints/mae_pretrain_all_except_14116/best_model.pth'
+  checkpoint_dir: './checkpoints/anil_fomaml'
+  tensorboard_dir: './runs/anil_fomaml' 

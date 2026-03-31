@@ -1,0 +1,140 @@
+# Neural Data Configuration
+# ==========================
+# Standard dataset configurations for neuropixel recordings
+
+# Dataset selection and filtering
+dataset_selection:
+  # Primary datasets
+  monkey_datasets:
+    - "te13122"    # Monkey A dataset
+    - "te14116"    # Monkey B dataset (primary focus)
+  
+  songbird_datasets:
+    - "songbird_001"  # Future songbird integration
+  
+  # Default exclusions for training
+  default_exclusions: ['13122.0', '14116.0']
+
+# Data preprocessing
+preprocessing:
+  # Temporal parameters
+  bin_width: 0.02                    # 20ms time bins (standard for PMd-M1)
+  sequence_length: 50                # Time steps per sequence
+  max_sequence_length: 1000          # Maximum allowed sequence length
+  
+  # Neural data parameters
+  neural_dim: 100                    # Standard neuron count for experiments
+  target_neuron_dim: 100            # Target dimensionality
+  min_firing_rate: 0.1              # Minimum firing rate threshold (Hz)
+  max_firing_rate: 100.0            # Maximum firing rate threshold (Hz)
+  
+  # Spatial parameters (for cursor data)
+  position_bounds: [-20, 20]        # Cursor position bounds (cm)
+  velocity_bounds: [-50, 50]        # Cursor velocity bounds (cm/s)
+  
+  # Data quality filters
+  min_trial_length: 30              # Minimum trial length (time bins)
+  max_trial_length: 200             # Maximum trial length (time bins)
+  min_active_neurons: 50            # Minimum number of active neurons
+
+# Neuron selection strategies
+neuron_selection:
+  strategies:
+    all: "Use all available neurons"
+    first_n: "Use first N neurons (consistent ordering)"
+    random_n: "Use random N neurons (with seed)"
+    top_n: "Use N most active neurons"
+    region_specific: "Use neurons from specific brain regions"
+  
+  # Default settings
+  default_strategy: "first_n"
+  default_count: 100
+  random_seed: 42                   # For reproducible random selection
+
+# Data augmentation (for self-supervised pretraining)
+augmentation:
+  # Temporal augmentations
+  time_jitter:
+    enabled: true
+    max_shift: 5                    # Maximum time shift (bins)
+    probability: 0.3
+  
+  time_warping:
+    enabled: false
+    max_warp: 0.1                   # Maximum warping factor
+    probability: 0.2
+  
+  # Neural activity augmentations
+  gaussian_noise:
+    enabled: true
+    std: 0.05                       # Noise standard deviation
+    probability: 0.4
+  
+  dropout:
+    enabled: true
+    drop_rate: 0.1                  # Neuron dropout rate
+    probability: 0.3
+  
+  # Masking (for MAE training)
+  masking:
+    neuron_mask_ratio: 0.25         # Fraction of neurons to mask
+    time_mask_ratio: 0.25           # Fraction of time bins to mask
+    block_masking: true             # Use block masking strategy
+
+# Data splitting
+data_splits:
+  # Standard splits for research
+  standard:
+    train: 0.7
+    validation: 0.15
+    test: 0.15
+  
+  # Few-shot learning splits
+  few_shot:
+    train: 0.1
+    validation: 0.45
+    test: 0.45
+  
+  # Meta-learning splits (session-based)
+  meta_learning:
+    train_sessions: ["session_1", "session_2", "session_3"]
+    validation_sessions: ["session_4"]
+    test_sessions: ["session_5"]
+
+# Data loading and batching
+data_loading:
+  batch_size: 64                    # Default batch size
+  num_workers: 4                    # Data loading workers
+  pin_memory: true                  # Pin memory for GPU transfer
+  drop_last: true                   # Drop incomplete batches
+  shuffle: true                     # Shuffle training data
+  
+  # Advanced options
+  prefetch_factor: 2                # Prefetch batches per worker
+  persistent_workers: true          # Keep workers alive between epochs
+
+# Target variables
+targets:
+  # Regression targets
+  regression:
+    position:
+      dimension: 2                  # [x, y] coordinates
+      units: "cm"
+      normalize: true
+    velocity:
+      dimension: 2                  # [vx, vy] velocities
+      units: "cm/s"
+      normalize: true
+    acceleration:
+      dimension: 2                  # [ax, ay] accelerations
+      units: "cm/s²"
+      normalize: true
+  
+  # Classification targets
+  classification:
+    direction:
+      classes: 8                    # 8-directional movement
+      labels: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+    intention:
+      classes: 2                    # Movement vs. rest
+      labels: ["rest", "movement"] 

@@ -1,0 +1,114 @@
+# Public Dataset Neural Foundation Model Pretraining Configuration
+# ================================================================
+# Comprehensive configuration for PublicNeuralFoundationMAE pretraining
+# on Perich-Miller 2018 dataset with temporal-only architecture
+
+# Model size configurations (factory patterns)
+model_sizes:
+  small:
+    d_model: 256
+    temporal_layers: 4
+    heads: 8  #
+    
+  medium:
+    d_model: 768
+    temporal_layers: 6
+    heads: 12
+    
+  large:
+    d_model: 1024
+    temporal_layers: 8
+    heads: 16
+
+# Model configuration (temporal-only)
+model:
+  neural_dim: 50                    # N: neural channels per session
+  d_model: 512                      # Model dimension
+  temporal_layers: 6                # Temporal encoder layers (no spatial layers)
+  heads: 8                          # Attention heads
+  dropout: 0.1                      # Dropout rate
+  
+  # Architecture type
+  architecture: "temporal_only"     # Single-site temporal processing only
+  pos_encoding_type: "rope_4d"      # Positional encoding type (ablation study) : ["rope_4d", "standard_rope", "learnable", "sinusoidal"]
+  use_temporal_kernels: false        # Enable adaptive causal kernel attention
+  kernel_size: [3, 3]               # Kernel size for adaptive attention (varies by model size)
+  
+  # Ablation study parameters for positional encoding
+  ablation:
+    # Positional encoding variants:
+    # - 'rope_4d': Multi-dimensional RoPE with 4D coordinates (Ours)
+    # - 'standard_rope': Traditional 1D RoPE (temporal only)
+    # - 'learnable': Learnable 4D positional embeddings
+    # - 'sinusoidal': Fixed sinusoidal positional encoding (temporal only)
+    # pos_encoding_options: ["rope_4d", "standard_rope", "learnable", "sinusoidal"]
+    
+    # Positional encoding parameters
+    # max_subjects: 10                # Maximum number of subjects (for learnable PE)
+    # max_time_periods: 10            # Maximum time periods (for learnable PE)
+    # max_tasks: 10                   # Maximum tasks (for learnable PE)
+    # rope_base: 10000.0             # Base frequency for RoPE variants
+  
+# Dataset configuration
+dataset:
+  subjects: ["c", "m", "t", "j"]         #  ["c", "j", "m"] gives Pretraining subjects (99 sessions total) ; ["c", "m"] gives 96 sessions
+  target_neurons: 50                # Target neurons per session (N dimension)
+  sample_times: 5                   # Neuron sampling repetitions
+  target_trials_per_site: 5000       # Target trials for training split per session
+  min_val_test_trials: 250           # Minimum trials for val/test (prevents oversampling)
+  sequence_length: 50               # T: timesteps per sequence
+  
+  # Data paths
+  data_root: "/data/Fang-analysis/causal-nfm/Data/processed_normalize_session"
+
+# Training configuration
+training:
+  # Model and optimization
+  seed: 3407
+  learning_rate: 0.00005
+  weight_decay: 0.01                # AdamW weight decay
+  batch_size: 64                    # Batch size per GPU
+  num_epochs: 1000                   # Fewer epochs expected for public dataset
+  
+  # Learning rate scheduling
+  warmup_epochs: 50                 # Linear warmup epochs
+  min_lr_ratio: 0.0                 # Final LR = min_lr_ratio * initial_lr
+  
+  # Gradient management
+  max_grad_norm: 1.0                # Gradient clipping norm
+  
+  # Masking configuration (temporal-only)
+  masking:
+    temporal_mask_ratio: [0.01, 0.99]    # Dynamic range: uniform masking
+    neuron_mask_ratio: [0.01, 0.99]      # Dynamic range: uniform masking
+    min_unmasked_timesteps: 5            # Safety constraint
+    min_unmasked_neurons: 10             # Safety constraint per session
+  
+  # Early stopping
+  early_stopping_patience: 50       # Stop if no improvement for N epochs
+
+# Paths (managed automatically by enhanced logging system)
+paths:
+  base_dir: "./logs_public"        # Base directory for all experiment outputs
+  experiment_name: null             # Will be auto-generated based on model configuration
+
+# Hardware configuration
+hardware:
+  # GPU settings
+  cuda_deterministic: true          # For reproducibility
+  cuda_benchmark: false             # For reproducibility
+  
+  # Data loading
+  num_workers: 8                    # DataLoader workers per GPU
+  pin_memory: true                  # Pin memory for faster GPU transfer
+
+# Experiment tracking and metadata
+experiment:
+  description: "Public dataset neural foundation model pretraining with temporal-only architecture"
+  tags: ["public_dataset", "temporal_only", "mae", "perich_miller_2018"]
+  notes: "Single-site temporal pretraining on multi-subject with RoPE4D session coordinates"
+  
+  # Expected performance
+  baseline_metrics:
+    target_reconstruction_loss: 0.5   # Target reconstruction loss
+    convergence_epochs: 500           # Expected convergence time

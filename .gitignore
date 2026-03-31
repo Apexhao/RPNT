@@ -1,0 +1,302 @@
+# ====================================================================
+# Neural Foundation Model .gitignore
+# Optimized for ML/AI projects with PyTorch and large-scale training
+# ====================================================================
+
+# ==========================================
+# TRAINING OUTPUTS & LARGE FILES (CRITICAL)
+# ==========================================
+# Training logs and checkpoints - typically very large (GB+)
+logs*/
+old_logs/
+experiments/results/
+experiments/checkpoints/
+experiments/tensorboard/
+connectivity*/
+docs/
+examples/
+
+*.sh
+
+# Model checkpoints and weights
+*.png
+*.svg
+*.pth
+*.pt
+*.pkl
+*.pickle
+checkpoints/
+model_weights/
+pretrained_models/
+
+# Large data files
+*.h5
+*.hdf5
+data/raw/
+data/processed/
+*.npz
+*.npy
+
+# TensorBoard logs
+runs/
+tensorboard_logs/
+
+# Weights & Biases
+wandb/
+
+# ==========================================
+# PYTHON CORE
+# ==========================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# ==========================================
+# JUPYTER & NOTEBOOKS
+# ==========================================
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+*.ipynb_backup
+
+# Jupyter Notebook specific
+.jupyter/
+jupyter_config/
+
+# ==========================================
+# ENVIRONMENTS & CONFIG
+# ==========================================
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+conda-env/
+.conda/
+
+# Environment variables
+.env.local
+.env.development
+.env.production
+secrets.yaml
+config/secrets/
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# ==========================================
+# IDE & EDITOR FILES
+# ==========================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ==========================================
+# OS SPECIFIC
+# ==========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==========================================
+# TEMPORARY & CACHE FILES
+# ==========================================
+# General temporary files
+*.tmp
+*.temp
+*.log
+*.cache
+*.pid
+*.lock
+
+# Backup files
+*.bak
+*.backup
+*.orig
+*~
+
+# ==========================================
+# ML/AI SPECIFIC
+# ==========================================
+# Large datasets (uncomment if you have these)
+# *.csv
+# *.json  # Be careful with this - some configs are JSON
+# *.jsonl
+# *.parquet
+
+# Model artifacts
+mlruns/
+.mlflow/
+artifacts/
+
+# Hydra
+.hydra/
+outputs/
+multirun/
+
+# DVC (Data Version Control)
+.dvc/
+.dvcignore
+
+# Kubeflow
+.kubeflow/
+
+# ==========================================
+# DOCUMENTATION BUILD
+# ==========================================
+# Sphinx documentation
+docs/_build/
+docs/build/
+site/
+
+# MkDocs
+/site
+
+# ==========================================
+# PROFILING & DEBUGGING
+# ==========================================
+# Memory profiling
+*.prof
+*.profile
+.prof/
+
+# Coverage reports
+.coverage.*
+coverage/
+htmlcov/
+
+# Debug logs
+debug*.log
+*.debug
+
+# ==========================================
+# SECURITY & SENSITIVE DATA
+# ==========================================
+# API keys and secrets
+.env
+.env.*
+*.key
+*.pem
+*.crt
+api_keys.txt
+secrets.txt
+
+# SSH keys
+id_rsa
+id_rsa.pub
+*.pem
+
+# ==========================================
+# OPTIONAL: UNCOMMENT AS NEEDED
+# ==========================================
+# Large temporary files that might be created during processing
+# *.wav
+# *.mp4
+# *.avi
+# *.mov
+
+# SLURM job outputs (for cluster computing)
+# slurm-*.out
+# *.sbatch.out
+
+# Singularity/Apptainer containers
+# *.sif
+# *.simg

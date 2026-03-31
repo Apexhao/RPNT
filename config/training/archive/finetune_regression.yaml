@@ -1,0 +1,56 @@
+# Model size configurations
+model_sizes:
+  small:
+    d_model: 256
+    heads: 4
+    encoder_layers: 3
+    decoder_layers: 3
+    
+  medium:
+    d_model: 512
+    heads: 8
+    encoder_layers: 6
+    decoder_layers: 6
+    
+  large:
+    d_model: 1024
+    heads: 16
+    encoder_layers: 12
+    decoder_layers: 12
+
+# Base model configuration
+model:
+  neural_dim: 100
+  kernel_size: [3, 3]
+  dropout: 0.15
+  threshold_log_rates: 20.0
+  activity_threshold: 0.01
+
+# Dataset configuration
+dataset:
+  dataset_id: 'te14116'  # Single dataset for downstream task
+  width: 0.02
+  target_neuron_dim: 100
+  neuron_selection_strategy: 'first_n'  # 'all', 'first_n', 'random_n'
+  selected_neurons: 100  # Number of neurons to select
+  split_ratios: [0.02, 0.48, 0.5]  # [train, valid, test] ratios for few-shot learning
+
+# Fine-tuning configuration - FROZEN ENCODER MODE
+finetune:
+  model_size: "medium"  # small, medium, or large
+  seed: 3407
+  output_dim: 2  # x,y coordinates/velocity
+  target_type: 'velocity'  # 'position' or 'velocity'
+  learning_rate: 0.01  # Higher LR for regressor head only
+  num_epochs: 200
+  decay_epochs: 10
+  decay_rate: 0.9
+  training_mode: "frozen_encoder"  # Only train regressor head from pretrained weights
+  batch_size: 16
+  save_freq: 200
+
+# Paths (auto-generated based on config)
+paths:
+  base_dir: "./logs"
+  experiment_name: null  # Will be auto-generated
+  pretrained_path: './logs/checkpoints/mae_medium_bs64_lr5e-5_mn0.25_mt0.25_lc0.5_ex13122_14116_first100/best_model.pth'

@@ -1,0 +1,103 @@
+# Cross-Dataset Configuration: Public Pretrained → Neuropixel Downstream Regression
+# ====================================================================================
+# Configuration for testing public dataset pretrained encoder on neuropixel data
+
+# Dataset configuration (Neuropixel single-site)
+dataset:
+  dataset_id: 'te14116'                    # Single-site neuropixel dataset
+  data_root: "/data/Fang-analysis/causal-nfm/Data/Monkey_data_meta"
+  split_ratios: [0.2, 0.3, 0.5]          # (train, val, test) ratios
+  target_neurons: 50                       # Target number of neurons
+  width: 0.02                             # Time bin width (20ms)
+  sequence_length: 50                      # Sequence length (T dimension)
+  neuron_selection_strategy: 'first_n'    # Neuron selection strategy
+  selected_neurons: 50                     # Number of neurons to select
+  random_seed: 3407                        # Random seed
+
+# Model configuration
+model:
+  dropout: 0.1                            # Dropout rate for downstream heads
+  prediction_layers: 2                    # Number of layers in regression head
+  
+  # Positional encoding adaptation
+  use_standard_rope: true                 # Replace RoPE4D with standard 1D RoPE
+  rope_base: 10000.0                      # RoPE base frequency
+
+# Training/Fine-tuning configuration
+training:
+  # Task-specific settings
+  task_type: 'regression'                 # Task type identifier
+  target_type: 'velocity'                 # 'velocity' or 'position' prediction
+  output_dim: 2                           # Output dimensions (x, y)
+  training_mode: 'finetune_encoder'       # Hardcoded in code
+  
+  # Optimization settings
+  learning_rate: 0.0001                   # Learning rate
+  weight_decay: 0.01                      # AdamW weight decay
+  batch_size: 32                          # Batch size
+  num_epochs: 200                         # Number of training epochs
+  
+  # Learning rate scheduling
+  decay_epochs: 50                        # LR decay every N epochs
+  decay_rate: 0.9                         # LR decay factor
+  
+  # Regularization
+  max_grad_norm: 1.0                      # Gradient clipping norm
+  
+  # Early stopping
+  early_stopping_patience: 100            # Stop if no improvement for N epochs
+  
+  # Reproducibility
+  random_seed: 3407
+
+# Paths configuration
+paths:
+  base_dir: "./logs_cross_dataset/"  # Base directory for outputs
+  experiment_name: public_to_neuropixel                   # Auto-generated based on config
+  
+  # PUBLIC pretrained model path
+  pretrained_path: './logs_public/Train_on_public_dataset_neural_dim_50_d_model_384_layer_4_h16_PE_standard_rope_Kernel_9_9/checkpoints/best.pth'
+
+# Hardware configuration
+hardware:
+  device: 'auto'                          # 'auto', 'cuda', or 'cpu'
+  num_workers: 4                          # DataLoader workers
+  pin_memory: true                        # Pin memory for faster GPU transfer
+
+# Experiment metadata
+experiment:
+  description: "Cross-dataset generalization: Public pretrained → Neuropixel downstream regression"
+  tags: ["cross_dataset", "public_to_neuropixel", "generalization", "transfer_learning"]
+  notes: |
+    Testing cross-dataset transfer learning by:
+    1. Loading public dataset pretrained encoder (RoPE4D)
+    2. Replacing with standard 1D RoPE (temporal-only)
+    3. Fine-tuning on neuropixel single-site data (te14116)
+    4. Evaluating velocity prediction performance
+    
+    Key hypothesis: Pretrained representations from public data should 
+    transfer to neuropixel data despite different recording paradigms.
+  
+  # Dataset and model info
+  dataset_info:
+    source: "Cross-dataset transfer learning evaluation"
+    pretrained_on: "Public dataset (Perich-Miller 2018)"
+    evaluated_on: "Neuropixel dataset (te14116)"
+    task: "Velocity prediction from single-site neural activity"
+    input_format: "[B, 1, T, N] neural data (no coordinates needed)"
+    output_format: "[B, T, 2] velocity vectors"
+  
+  # Expected outcomes
+  research_questions:
+    - "Can public dataset representations transfer to neuropixel data?"
+    - "How does performance compare to neuropixel-native pretraining?"
+    - "What is the impact of positional encoding adaptation?"
+
+# Advanced options
+advanced:
+  save_predictions: true                  # Save predictions for analysis
+  compute_attention_maps: false           # Extract attention patterns (expensive)
+  debug_mode: false                       # Enable debug logging
+  plot_training_curves: true              # Plot training curves
+  save_sample_predictions: true           # Save sample predictions
+

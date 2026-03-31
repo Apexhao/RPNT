@@ -1,0 +1,37 @@
+model:
+  neural_dim: 105
+  d_model: 512
+  heads: 8
+  encoder_layers: 6
+  decoder_layers: 6
+  kernel_size: [3, 3]
+  dropout: 0.15
+
+finetune:
+  # we by exclude_ids, we actually pick te14116
+  exclude_ids: ['13122.0', '14878.0', '12269.0', '13256.0', '10802.0', '14139.0', '12269.0', '14824.0', '12290.0', '9940.0', '13272.0', '10812.0', '10820.0', '14891.0', '13153.0', '13239.0', '10828.0']
+  
+  #exclude_ids: ['13122.0']
+
+  # we by exclude_ids, we actually pick te9940
+  #exclude_ids: ['13122.0', '14116.0', '14878.0', '12269.0', '13256.0', '10802.0', '14139.0', '12269.0', '14824.0', '12290.0', '13272.0', '10812.0', '10820.0', '14891.0', '13153.0', '13239.0', '10828.0']
+
+  # we by exclude_ids, we actually pick predictable datasets
+  #exclude_ids: ['13122.0', '12290.0', '9940.0', '13272.0', '10812.0', '10820.0']
+
+  seed: 3407
+  num_classes: 8
+  learning_rate: 1e-2
+  num_epochs: 200
+  decay_epochs: 10
+  decay_rate: 0.95
+  freeze_encoder: true
+  batch_size: 232
+  save_freq: 100
+
+paths:
+  #pretrained_path: './checkpoints/mae_pretrain_predictable/best_model.pth'
+  #pretrained_path: './checkpoints/mae_pretrain_all/best_model.pth'
+  pretrained_path: './checkpoints/mae_pretrain_all_except_14116/best_model.pth'
+  checkpoint_dir: './checkpoints/downstream_classification'
+  tensorboard_dir: './runs/downstream_classification'

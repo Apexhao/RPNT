@@ -1,0 +1,33 @@
+model:
+  neural_dim: 105
+  d_model: 64
+  heads: 2
+  encoder_layers: 2
+  decoder_layers: 2
+  kernel_size: [3, 3]
+  dropout: 0.15 
+
+anil_fomaml:
+  seed: 3407
+  output_dim: 1  # sine wave output is 1D
+  target_type: 'sine'  # new type for sine wave regression
+
+  # Meta-learning parameters for sine wave
+  k_shot: 10  # fewer samples needed for sine waves
+  k_query: 10
+  batch_size: 100  # matches number of training sine wave tasks
+  num_batches: 25
+  num_epochs: 10000  # start with fewer epochs for testing
+  num_inner_steps: 1
+  outer_lr: 0.001
+  inner_lr: 0.01
+
+  warmup_steps: 10
+  decay_epochs: 10
+  decay_rate: 0.95
+  freeze_encoder: False  # enable full model training for sine waves
+  save_freq: 1000
+
+paths:
+  checkpoint_dir: './checkpoints/anil_fomaml_sine'
+  tensorboard_dir: './runs/anil_fomaml_sine'

@@ -1,0 +1,112 @@
+# Public Dataset Downstream Regression Configuration
+# ==================================================
+# Configuration for fine-tuning pretrained temporal-only foundation models 
+# on public dataset regression tasks (velocity/position prediction)
+
+# Dataset configuration (template - specify via command line)
+dataset:
+  dataset_type: 'cross_session'     # 'cross_session', 'cross_subject_center', 'cross_subject_random', 'no_t_subject', 'only_rt_task', 'only_co_task'
+  target_neurons: 300                # Target number of neurons (N dimension)
+  sequence_length: 50               # T: timesteps per sequence
+  random_seed: 3407                   # Random seed for reproducible sampling
+  neuron_selection_strategy: 'all'    # 'first_n', 'random_n', or 'all'
+  # Data paths
+  data_root: "/data/Fang-analysis/causal-nfm/Data/processed_latest"
+
+# NOTE: Model configuration is loaded from pretrained foundation model checkpoint
+# No model config duplication needed - ensures consistency with pretrained weights
+
+# Training/Fine-tuning configuration
+training:
+  # Task-specific settings
+  task_type: 'regression'           # Task type identifier
+  target_type: 'velocity'           # 'velocity' or 'position' prediction
+  output_dim: 2                     # Output dimensions (x, y)
+  training_mode: 'full_finetune'   # 'frozen_encoder' or 'full_finetune' or 'partial_finetune'
+  
+  # Optimization settings
+  learning_rate: 0.0001              # Learning rate (higher for frozen encoder)
+  weight_decay: 0.01                # AdamW weight decay
+  batch_size: 32                    # Batch size
+  num_epochs: 1000                   # Number of training epochs
+  
+  # Learning rate scheduling
+  decay_epochs: 100                # LR decay every N epochs
+  decay_rate: 0.5                   # LR decay factor
+  
+  # Regularization
+  max_grad_norm: 1.0                # Gradient clipping norm
+  use_l1_regularization: false      # Enable L1 regularization
+  l1_weight: 0.01                   # L1 regularization weight
+  
+  # Early stopping
+  early_stopping_patience: 50       # Stop if no improvement for N epochs
+  
+  # Reproducibility
+  random_seed: 3407
+
+# Session-level evaluation configuration
+evaluation:
+  # Evaluation strategy
+  per_session_evaluation: true      # Evaluate each session individually
+  aggregate_sessions: true          # Compute aggregated metrics across sessions
+  
+  # Metrics to compute
+  metrics: ["r2_score"]
+  
+  # Session analysis
+  save_session_results: true        # Save detailed per-session results
+  save_predictions: true            # Save predictions for analysis
+  
+  # Cross-generalization analysis
+  cross_session_analysis: true      # Analyze cross-session generalization
+
+# Paths configuration (auto-managed by enhanced logger)
+paths:
+  base_dir: "./logs_public_downstream"                   # Base directory for all outputs
+  experiment_name: null             # Auto-generated based on config
+  
+  # Pretrained model path (specify via command line)
+  pretrained_path: './logs_public/full_small_all_normalize_session/checkpoints/best.pth'
+
+# Hardware configuration
+hardware:
+  device: 'auto'                    # 'auto', 'cuda', or 'cpu'
+  num_workers: 4                    # DataLoader workers
+  pin_memory: true                  # Pin memory for faster GPU transfer
+
+# Experiment metadata
+experiment:
+  description: "Public dataset downstream regression with session-level evaluation"
+  tags: ["public_dataset", "downstream", "regression", "velocity_prediction", "session_analysis"]
+  notes: "Session-level evaluation with aggregated metrics across multiple sessions"
+  
+  # Expected performance (targets for comparison)
+  baseline_metrics:
+    cross_session:
+      target_r2: 0.95            # Target R² for cross-session
+      target_sessions: 2            # Expected number of sessions
+    cross_subject_center:
+      target_r2: 0.90               # Target R² for cross-subject center-out
+      target_sessions: 6            # Expected number of sessions
+    cross_subject_random:
+      target_r2: 0.75               # Target R² for cross-subject random-target
+      target_sessions: 6            # Expected number of sessions
+
+# Advanced options
+advanced:
+  # Session-level analysis
+  session_correlation_analysis: true    # Analyze correlation between sessions
+  session_difficulty_ranking: true      # Rank sessions by difficulty
+  
+  # Model analysis
+  save_attention_maps: false        # Extract attention patterns per session
+  analyze_feature_importance: false # Feature importance analysis
+  
+  # Debugging
+  debug_mode: false                 # Enable debug logging
+  profile_training: false           # Profile training loop
+  
+  # Visualization
+  plot_session_results: true        # Plot per-session results
+  save_trajectory_plots: true       # Save sample trajectory predictions

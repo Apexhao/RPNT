@@ -1,0 +1,126 @@
+# Per-Session Evaluation Configuration for Public Dataset
+# =====================================================
+# Configuration for individual session adaptation evaluation using the NEW per-session protocol
+# where each session is trained and evaluated individually, then results are aggregated.
+
+# Evaluation scenario
+evaluation:
+  scenario: 'cross_subject_center'     # 'cross_session', 'cross_subject_center', 'cross_subject_random'
+  evaluation_mode: 'per_session'       # NEW: distinguishes from 'multi_session'
+  
+# Dataset configuration  
+dataset:
+  target_neurons: 300                  # Target number of neurons (N dimension)
+  sequence_length: 50                  # T: timesteps per sequence
+  neuron_selection_strategy: 'all' # 'first_n', 'random_n', or 'all'
+  random_seed: 3407                    # Random seed for reproducible sampling
+  data_root: "/data/Fang-analysis/causal-nfm/Data/processed_normalize_session"  #"/data/Fang-analysis/causal-nfm/Data/public_data"
+
+# Model configuration (clean - no architecture duplication)
+model:
+  # Model initialization mode (clear and descriptive)
+  initialization_mode: 'foundation_pretrained'  # Options:
+                                                # 'random': Same architecture as foundation, random weights
+                                                # 'foundation_pretrained': Foundation encoder + random prediction head
+                                                # 'downstream_complete': Complete downstream model (encoder + head)
+                                                # 'downstream_encoder_only': Downstream encoder + random prediction head
+  
+  # NOTE: Model architecture is automatically loaded from checkpoint
+  # No architecture duplication needed - ensures fair comparison across initialization modes
+
+# Per-session training configuration
+training:
+  # Task-specific settings
+  task_type: 'regression'              # Task type identifier
+  target_type: 'velocity'              # 'velocity' or 'position' prediction
+  output_dim: 2                        # Output dimensions (x, y)
+  training_mode: 'full_finetune'       # 'frozen_encoder', 'full_finetune', or 'partial_finetune'
+  
+  # Optimization settings (typically faster for per-session)
+  learning_rate: 0.0001                 # Learning rate
+  weight_decay: 0.01                   # AdamW weight decay
+  batch_size: 32                       # Batch size
+  num_epochs: 1000                       # Fewer epochs per session (vs 100 for multi-session)
+  
+  # Learning rate scheduling
+  decay_epochs: 1000                   # LR decay every N epochs
+  decay_rate: 0.9                      # LR decay factor
+  
+  # Regularization
+  max_grad_norm: 1.0                   # Gradient clipping norm
+  use_l1_regularization: false         # Enable L1 regularization
+  l1_weight: 0.01                      # L1 regularization weight
+  
+  # Early stopping (faster for per-session)
+  early_stopping_patience: 100          # Stop if no improvement for N epochs (vs 50 for multi-session)
+  
+  # Reproducibility
+  random_seed: 3407
+
+# Aggregation settings for per-session results
+aggregation:
+  metrics: ["r2_mean" ]                    # Metrics to aggregate across sessions
+  compute_statistics: ["mean", "std", "min", "max"]    # Statistical measures to compute
+  save_individual_results: true                        # Save detailed per-session results
+  save_aggregated_results: true                        # Save aggregated statistics
+  
+  # Advanced analysis
+  session_correlation_analysis: false   # Analyze correlation between sessions
+  session_difficulty_ranking: true      # Rank sessions by difficulty
+
+# Paths configuration
+paths:
+  base_dir: "./logs_public_per_session_normalize_session"                     # Base directory for per-session outputs
+  experiment_name: null                                     # Auto-generated based on scenario
+  
+  # Pretrained path (foundation or downstream - specify via command line)
+  pretrained_path: './logs_public/full_small_all_normalize_session/checkpoints/best.pth'
+
+# Hardware configuration
+hardware:
+  device: 'gpu'                       # 'auto', 'cuda', or 'cpu'
+  num_workers: 4                       # DataLoader workers (fewer for per-session)
+  pin_memory: true                     # Pin memory for faster GPU transfer
+
+# Experiment metadata
+experiment:
+  description: "Per-session evaluation protocol with clean 4-mode initialization system"
+  tags: ["public_dataset", "per_session", "regression", "velocity_prediction", "session_adaptation", "clean_initialization"]
+  notes: "NEW evaluation protocol with 4 clean initialization modes: random, foundation_pretrained, downstream_complete, downstream_encoder_only. Architecture always from checkpoint - no duplication."
+  
+  # Expected performance targets (based on published papers)
+  baseline_metrics:
+    cross_session:
+      target_r2: 0.95                  # Target R² for cross-session (vs 0.7 with multi-session)
+      target_sessions: 2               # Expected number of sessions
+    cross_subject_center:
+      target_r2: 0.90                  # Target R² for cross-subject center-out (vs 0.5 with multi-session)
+      target_sessions: 6               # Expected number of sessions
+    cross_subject_random:
+      target_r2: 0.75                  # Target R² for cross-subject random-target (vs 0.5 with multi-session)
+      target_sessions: 6               # Expected number of sessions
+
+# Advanced options
+advanced:
+  # Session-level analysis
+  detailed_session_logging: true       # Log detailed per-session training progress
+  save_session_checkpoints: false      # Save individual session checkpoints (storage intensive)
+  
+  # Statistical analysis
+  confidence_intervals: true           # Compute confidence intervals for aggregated metrics
+  outlier_detection: true              # Detect and flag outlier sessions
+  
+  # Comparison with multi-session
+  compare_with_multi_session: false    # Enable comparison with existing multi-session results
+  
+  # Pretrained vs Random comparison
+  compare_pretrained_vs_random: false  # Run both pretrained and random initialization for comparison
+  random_init_seeds: [3407,3408,3409]    # Multiple seeds for random initialization (for robustness)
+  
+  # Debugging
+  debug_mode: false                    # Enable debug logging
+  profile_training: false              # Profile training loop
+  
+  # Visualization
+  plot_session_results: true           # Plot per-session results
+  save_trajectory_plots: false         # Save sample trajectory predictions (storage intensive)
